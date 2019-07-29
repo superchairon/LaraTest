@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  # The Application
+  php-fpm:
+    build:
+      context: ./.docker
+      dockerfile: php-fpm.dockerfile
+    working_dir: /var/www
+    user: www-data
+    depends_on:
+      - mongodb
+      - postgres
+    expose:
+      - 9000
+    volumes:
+      - ./:/var/www
+
+  # The Web Server
+  nginx:
+    build:
+      context: ./.docker
+      dockerfile: nginx.dockerfile
+    working_dir: /var/www
+    depends_on:
+      - php-fpm
+    volumes:
+      - ./:/var/www
+    expose:
+      - 80
+      - 443
+
+  # Mongo DB
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - dbmongo:/data/db
+    expose:
+      - 27017
+
+  # Postgres
+  postgres:
+    image: postgres:9.5-alpine
+    environment:
+      - POSTGRES_DB=laratest
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+    volumes:
+      - dbpostgres:/var/lib/postgresql/data
+    expose:
+      - 5432
+    restart: always
+
+# Volumes referenced by services
+volumes:
+  dbmongo:
+  dbpostgres:
