@@ -32,7 +32,7 @@ services:
       - 80
       - 443
 
-  # The Application
+  # The Application CLI
   php-cli:
     build:
       context: .

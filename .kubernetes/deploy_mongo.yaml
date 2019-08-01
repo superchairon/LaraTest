@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: laratest-mongo
+spec:
+  serviceName: laratest-mongo
+  selector:
+    matchLabels:
+      app: laratest-mongo # Label selector that determines which Pods belong to the StatefulSet
+      # Must match spec: template: metadata: labels
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: laratest-mongo # Pod template's label selector
+    spec:
+      containers:
+        - name: laratest-mongo
+          image: mongo:3.4-xenial
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+
+

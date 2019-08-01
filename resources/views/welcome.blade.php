@@ -85,7 +85,7 @@
                     Laravel
                 </div>
                 <p>
-                    <strong>Add a Job</strong>
+                    <strong>Update only in dev namespaces... again</strong>
                 </p>
                 @foreach($counters as $counter)
                     <p><strong>{{$counter['description']}}</strong>: {{$counter['value']}} times</p>

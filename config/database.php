@@ -6,8 +6,8 @@ if (getenv('LARATEST_MONGO_SERVICE_HOST')) {
     putenv('MONGO_URL=mongodb://' . env("LARATEST_MONGO_SERVICE_HOST") . '/laratest'); // Remove leading slash from path
 }
 
-if (getenv('LARATEST_POSTGRES1_SERVICE_HOST')) {
-    putenv('DB_HOST=' .  env("LARATEST_POSTGRES1_SERVICE_HOST"));
+if (getenv('LARATEST_POSTGRES_SERVICE_HOST')) {
+    putenv('DB_HOST=' .  env("LARATEST_POSTGRES_SERVICE_HOST"));
 }
 
 

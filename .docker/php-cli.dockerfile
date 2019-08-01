@@ -17,5 +17,3 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /var/www
 COPY . /var/www
 RUN chmod -Rf 777 /var/www/storage/
-
-CMD php artisan queue:work --tries=3

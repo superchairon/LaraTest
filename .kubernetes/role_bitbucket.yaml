@@ -1,5 +1,5 @@
-kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
 metadata:
   namespace: default
   name: deploy
@@ -10,8 +10,8 @@ rules:
 
 ---
 
-kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
   name: deploy-role-binding
   namespace: default

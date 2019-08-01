@@ -14,9 +14,13 @@ spec:
         app: laratest-cli
     spec:
       containers:
-      - name: laratest-php
+      - name: laratest-cli
         image: superchairon/laratest_php-cli:latest
         imagePullPolicy: "Always"
+        args:
+        - /bin/sh
+        - -c
+        - php artisan queue:work --tries=3
         envFrom:
           - configMapRef:
               name: special-config

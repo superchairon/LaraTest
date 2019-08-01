@@ -15,6 +15,8 @@ class HomeController extends Controller
             ['description' => 'Postgres page clicks counter', 'value' => CounterManager::incPostgresCounter('postgres_views')],
             ['description' => 'Mongo jobs counter', 'value' => CounterManager::getMongoCounter('mongo_jobs')],
             ['description' => 'Postgres jobs counter', 'value' => CounterManager::getPostgresCounter('postgres_jobs')],
+            ['description' => 'Mongo scheduler counter', 'value' => CounterManager::getMongoCounter('mongo_scheduler')],
+            ['description' => 'Postgres scheduler counter', 'value' => CounterManager::getPostgresCounter('postgres_scheduler')],
         ];
         return view('welcome')
             ->with('counters', $counters);

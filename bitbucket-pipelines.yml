@@ -13,6 +13,7 @@ definitions:
       - composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs
     artifacts:
       - vendor/**
+
   buildImage: &buildImage
     name: Build and Push Docker Image
     caches:
@@ -30,9 +31,10 @@ definitions:
       - docker build -t superchairon/laratest_php-cli:latest -t superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER -f ./.docker/php-cli.dockerfile .
       - docker push superchairon/laratest_php-cli:latest
       - docker push superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER
+
   deploy: &deploy
     name: Deploy to Google Kubernetes Engine
-    image: k3integrations/kubectl:latest
+    image: roffe/kubectl
     script:
       # Configure kubectl
       - echo $KUBE_TOKEN | base64 -d > ./kube_token
@@ -42,9 +44,15 @@ definitions:
       - kubectl config set-context gke_coral-codex-248302_us-central1-a_standard-cluster-1 --cluster=standard-cluster-1 --user=bitbucket
       - kubectl config use-context gke_coral-codex-248302_us-central1-a_standard-cluster-1
       # Update image
-      - kubectl set image deployment laratest-gke laratest-php=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER
-      - kubectl set image deployment laratest-gke laratest-cli=superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER
-#      - kubectl --record deployment.apps/nginx-deployment set image deployment.v1.apps/nginx-deployment nginx=nginx:1.9.1
+      - NAMESPACES=$(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name -l deployment-type=development)
+      - >
+        for namespace in $NAMESPACES;
+        do
+          echo deploying to $namespace;
+          kubectl set image deployment/laratest-web laratest-php=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+          kubectl set image deployment/laratest-queue laratest-queue=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+          kubectl set image cronjob/laratest-scheduler laratest-scheduler=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+        done
 
 pipelines:
   default:
