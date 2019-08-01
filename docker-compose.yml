@@ -4,8 +4,8 @@ services:
   # The Application
   php-fpm:
     build:
-      context: ./.docker
-      dockerfile: php-fpm.dockerfile
+      context: . #/.docker
+      dockerfile: .docker/php-fpm.dockerfile
     working_dir: /var/www
     user: www-data
     depends_on:
@@ -13,26 +13,26 @@ services:
       - postgres
     expose:
       - 9000
-    volumes:
-      - ./:/var/www
+    # volumes:
+    #   - ./:/var/www
 
   # The Web Server
   nginx:
     build:
-      context: ./.docker
+      context: .docker
       dockerfile: nginx.dockerfile
     working_dir: /var/www
     depends_on:
       - php-fpm
-    volumes:
-      - ./:/var/www
+    # volumes:
+    #   - ./:/var/www
     expose:
       - 80
       - 443
 
   # Mongo DB
   mongodb:
-    image: mongo:latest
+    image: mongo:latest  #3.4-xenial
     volumes:
       - dbmongo:/data/db
     expose:

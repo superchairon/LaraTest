@@ -81,7 +81,7 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel
+                    Laravel: Add Kubernetes Deployment update from pipeline
                 </div>
                 <p><strong>Mongo Message</strong> {{ $mongoMessage }}</p>
                 <p><strong>Postgres Message</strong> {{ $postgresMessage }}</p>

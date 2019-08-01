@@ -14,3 +14,6 @@ RUN apt-get update && apt-get install -y \
 
 # Optionally install: calendar exif gettext intl pcntl pgsql shmop sockets sysvmsg sysvsem sysvshm wddx xsl Zend OPcache zip
 
+WORKDIR /var/www
+COPY . /var/www
+RUN chmod -Rf 777 /var/www/storage/

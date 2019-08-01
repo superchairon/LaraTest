@@ -1,0 +1,47 @@
+
+#image: php:7.1.29
+image:
+  name: atlassian/pipelines-awscli
+
+definitions:
+  composerInstall: &composerInstall
+    name: Install Composer
+    image: composer
+    caches:
+      - composer
+    script:
+      - composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs
+    artifacts:
+      - vendor/**
+  buildImage: &buildImage
+    name: Build and Push Docker Image
+    caches:
+      - docker
+    services:
+      - docker
+    script:
+      - ls -lt # list dir so that it's output in the logs, just to make sure the ./vendor dir is included from previous step
+      - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+      - docker build -t superchairon/laratest_php-fpm:latest -t superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER -f ./.docker/php-fpm.dockerfile .
+      - docker push superchairon/laratest_php-fpm:latest
+      - docker push superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER
+  deploy: &deploy
+    name: Deploy to Google Kubernetes Engine
+    image: k3integrations/kubectl:latest
+    script:
+      # Configure kubectl
+      - echo $KUBE_TOKEN | base64 -d > ./kube_token
+      - echo $KUBE_CA | base64 -d > ./kube_ca
+      - kubectl config set-cluster standard-cluster-1 --server=https://104.154.101.15 --certificate-authority="$(pwd)/kube_ca"
+      - kubectl config set-credentials bitbucket --token="$(cat ./kube_token)"
+      - kubectl config set-context gke_coral-codex-248302_us-central1-a_standard-cluster-1 --cluster=standard-cluster-1 --user=bitbucket
+      - kubectl config use-context gke_coral-codex-248302_us-central1-a_standard-cluster-1
+      # Update image
+      - kubectl set image deployment laratest-gke laratest-php=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER
+#      - kubectl --record deployment.apps/nginx-deployment set image deployment.v1.apps/nginx-deployment nginx=nginx:1.9.1
+
+pipelines:
+  default:
+    - step: *composerInstall
+    - step: *buildImage
+    - step: *deploy

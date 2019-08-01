@@ -1,0 +1,81 @@
+# # This file configures the laratest app which serves public web traffic.
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: laratest-postgres
+#   labels:
+#     app: laratest
+# spec:
+#   containers:
+#   - name: laratest-postgres
+#     # Replace $GCLOUD_PROJECT with your project ID
+#     image: postgres:9.5-alpine
+#     ports:
+#     - containerPort: 5432
+#     env:
+#       - name: POSTGRES_DB
+#         value: laratest
+#       - name: POSTGRES_USER
+#         value: myuser
+#       - name: POSTGRES_PASSWORD
+#         value: mypassword
+
+
+
+
+
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: laratest-postgres
+#  labels:
+#    app: laratest-postgres
+#spec:
+#  ports:
+#  - port: 5432
+#    name: postgres
+#  clusterIP: None
+#  selector:
+#    app: laratest-postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: laratest-postgres
+spec:
+  serviceName: laratest-postgres
+  selector:
+    matchLabels:
+      app: laratest-postgres # Label selector that determines which Pods belong to the StatefulSet
+                 # Must match spec: template: metadata: labels
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: laratest-postgres # Pod template's label selector
+    spec:
+      containers:
+      - name: laratest-postgres
+        image: postgres:9.5-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: laratest
+        - name: POSTGRES_USER
+          value: myuser
+        - name: POSTGRES_PASSWORD
+          value: mypassword
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

@@ -1,0 +1,31 @@
+# This file configures the laratest app which serves public web traffic.
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: laratest-gke
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laratest
+  template:
+    metadata:
+      labels:
+        app: laratest
+    spec:
+      containers:
+      - name: laratest-php
+        # Replace $GCLOUD_PROJECT with your project ID
+        image: superchairon/laratest_php-fpm:latest
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 9000
+        envFrom:
+          - configMapRef:
+              name: special-config
+      - name: laratest-nginx
+        image: superchairon/laratest_nginx:latest
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 80
+        - containerPort: 443
