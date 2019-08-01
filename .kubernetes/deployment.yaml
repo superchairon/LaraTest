@@ -13,6 +13,10 @@ spec:
       labels:
         app: laratest
     spec:
+      hostAliases:
+        - ip: "127.0.0.1"
+          hostnames:
+            - "php-fpm"  # used by the nginx.conf file in the laratest_nginx container
       containers:
       - name: laratest-php
         # Replace $GCLOUD_PROJECT with your project ID

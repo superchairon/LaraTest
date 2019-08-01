@@ -2,45 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Counter;
+use App\Helpers\CounterManager;
+use App\Jobs\UpdateCounterJob;
 use Illuminate\Http\Request;
-use MongoDB\Client;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $mongoMessage = $this->getMongoMessage();
-        $postgresMessage = $this->getPostgresMessage();
+        $counters = [
+            ['description' => 'Mongo page clicks counter', 'value' => CounterManager::incMongoCounter('mongo_views')],
+            ['description' => 'Postgres page clicks counter', 'value' => CounterManager::incPostgresCounter('postgres_views')],
+            ['description' => 'Mongo jobs counter', 'value' => CounterManager::getMongoCounter('mongo_jobs')],
+            ['description' => 'Postgres jobs counter', 'value' => CounterManager::getPostgresCounter('postgres_jobs')],
+        ];
         return view('welcome')
-            ->with('mongoMessage', $mongoMessage)
-            ->with('postgresMessage', $postgresMessage);
+            ->with('counters', $counters);
     }
 
-    private function getMongoMessage()
+    public function job()
     {
-        $mongoClient = new Client(env('MONGO_URL'));
-        if (!$mongoClient) {
-            $msg = 'Mongo Not Found';
-        } else {
-            $query = ['exists' => ['counter' => true]];
-            $collection = $mongoClient->{env('MONGO_DATABASE')}->counter;
-            $document = $collection->findOne($query);
-            $counter = $document ? $document['counter'] : 0;
-            $counter = $counter + 1;
-            $msg = 'This page has been registered in mongo ' . $counter . ' times';
-            $collection->updateOne($query, ['$set' => ['counter' => ($counter)]], ['upsert' => true]);
-        }
-        return $msg;
+        UpdateCounterJob::dispatch()->delay(now()->addSeconds(10));
+        return redirect('/');
     }
 
-    private function getPostgresMessage()
-    {
-        $counter = Counter::where('key', 'counter')->first();
-        $counter = $counter ? $counter->value : 0;
-        $counter = $counter + 1;
-        $msg = 'This page has been registered in postgres ' . $counter . ' times';
-        Counter::updateOrCreate(['key' => 'counter'], ['value' => $counter]);
-        return $msg;
-    }
 }

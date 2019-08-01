@@ -79,12 +79,18 @@
                 </div>
             @endif
 
+
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel: Add Kubernetes Deployment update from pipeline
+                    Laravel
                 </div>
-                <p><strong>Mongo Message</strong> {{ $mongoMessage }}</p>
-                <p><strong>Postgres Message</strong> {{ $postgresMessage }}</p>
+                <p>
+                    <strong>Add a Job</strong>
+                </p>
+                @foreach($counters as $counter)
+                    <p><strong>{{$counter['description']}}</strong>: {{$counter['value']}} times</p>
+                @endforeach
+                <a href="/job">Increment Job counters in 10 seconds</a>
             </div>
         </div>
     </body>

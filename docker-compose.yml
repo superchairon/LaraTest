@@ -13,8 +13,10 @@ services:
       - postgres
     expose:
       - 9000
-    # volumes:
-    #   - ./:/var/www
+#    env_file:
+#      - .env
+#    volumes:
+#      - ./:/var/www
 
   # The Web Server
   nginx:
