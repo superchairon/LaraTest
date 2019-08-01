@@ -13,8 +13,8 @@ services:
       - postgres
     expose:
       - 9000
-#    env_file:
-#      - .env
+    env_file:
+      - .env
 #    volumes:
 #      - ./:/var/www
 
@@ -31,6 +31,21 @@ services:
     expose:
       - 80
       - 443
+
+  # The Application
+  php-cli:
+    build:
+      context: .
+      dockerfile: .docker/php-cli.dockerfile
+    working_dir: /var/www
+    user: www-data
+    depends_on:
+      - mongodb
+      - postgres
+    env_file:
+      - .env
+  #    volumes:
+  #      - ./:/var/www
 
   # Mongo DB
   mongodb:
