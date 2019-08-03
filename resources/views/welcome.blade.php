@@ -85,7 +85,7 @@
                     Laravel
                 </div>
                 <p>
-                    <strong>Update only in dev namespaces... again</strong>
+                    <strong>This is a message for DEVELOPMENT systems</strong>
                 </p>
                 @foreach($counters as $counter)
                     <p><strong>{{$counter['description']}}</strong>: {{$counter['value']}} times</p>

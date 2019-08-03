@@ -25,12 +25,14 @@ definitions:
       - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
       # build php-fpm image
       - docker build -t superchairon/laratest_php-fpm:latest -t superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER -f ./.docker/php-fpm.dockerfile .
-      - docker push superchairon/laratest_php-fpm:latest
       - docker push superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER
+#      - docker push superchairon/laratest_php-fpm:latest
+      - if [[ $BITBUCKET_BRANCH == master ]]; then docker push superchairon/laratest_php-fpm:latest; fi
       # build php-cli image
       - docker build -t superchairon/laratest_php-cli:latest -t superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER -f ./.docker/php-cli.dockerfile .
-      - docker push superchairon/laratest_php-cli:latest
       - docker push superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER
+#      - docker push superchairon/laratest_php-cli:latest
+      - if [[ $BITBUCKET_BRANCH == master ]]; then docker push superchairon/laratest_php-cli:latest; fi
 
   deploy: &deploy
     name: Deploy to Google Kubernetes Engine
@@ -44,7 +46,8 @@ definitions:
       - kubectl config set-context gke_coral-codex-248302_us-central1-a_standard-cluster-1 --cluster=standard-cluster-1 --user=bitbucket
       - kubectl config use-context gke_coral-codex-248302_us-central1-a_standard-cluster-1
       # Update image
-      - NAMESPACES=$(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name -l deployment-type=development)
+      - if [ $BITBUCKET_BRANCH == master ]; then type=production; elif [ $BITBUCKET_BRANCH == develop ]; then type=development; else type=nothing; fi
+      - NAMESPACES=$(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name -l deployment-type=$type)
       - >
         for namespace in $NAMESPACES;
         do
@@ -55,7 +58,12 @@ definitions:
         done
 
 pipelines:
-  default:
-    - step: *composerInstall
-    - step: *buildImage
-    - step: *deploy
+  branches:
+    develop:
+      - step: *composerInstall
+      - step: *buildImage
+      - step: *deploy
+    master:
+      - step: *composerInstall
+      - step: *buildImage
+      - step: *deploy
