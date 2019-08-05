@@ -45,7 +45,7 @@
             }
 
             .title {
-                font-size: 84px;
+                font-size: 36px;
             }
 
             .links > a {
@@ -82,11 +82,12 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel
+                    {{ env('ACCOUNT_NAME') ? env('ACCOUNT_NAME') : 'Laravel' }}
                 </div>
                 <p>
                     <strong>This is a message for DEVELOPMENT systems</strong>
                 </p>
+                <hr>
                 @foreach($counters as $counter)
                     <p><strong>{{$counter['description']}}</strong>: {{$counter['value']}} times</p>
                 @endforeach

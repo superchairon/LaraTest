@@ -57,6 +57,29 @@ definitions:
           kubectl set image cronjob/laratest-scheduler laratest-scheduler=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
         done
 
+#  deployPR: &deployPR
+#    name: Deploy to Google Kubernetes Engine
+#    image: roffe/kubectl
+#    script:
+#      # Configure kubectl
+#      - echo $KUBE_TOKEN | base64 -d > ./kube_token
+#      - echo $KUBE_CA | base64 -d > ./kube_ca
+#      - kubectl config set-cluster standard-cluster-1 --server=https://104.154.101.15 --certificate-authority="$(pwd)/kube_ca"
+#      - kubectl config set-credentials bitbucket --token="$(cat ./kube_token)"
+#      - kubectl config set-context gke_coral-codex-248302_us-central1-a_standard-cluster-1 --cluster=standard-cluster-1 --user=bitbucket
+#      - kubectl config use-context gke_coral-codex-248302_us-central1-a_standard-cluster-1
+#      # Update image
+#      - if [ $BITBUCKET_BRANCH == master ]; then type=production; elif [ $BITBUCKET_BRANCH == develop ]; then type=development; else type=nothing; fi
+#      - NAMESPACES=$(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name -l deployment-type=$type)
+#      - >
+#        for namespace in $NAMESPACES;
+#        do
+#          echo deploying to $namespace;
+#          kubectl set image deployment/laratest-web laratest-php=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+#          kubectl set image deployment/laratest-queue laratest-queue=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+#          kubectl set image cronjob/laratest-scheduler laratest-scheduler=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+#        done
+
 pipelines:
   branches:
     develop:
@@ -67,3 +90,8 @@ pipelines:
       - step: *composerInstall
       - step: *buildImage
       - step: *deploy
+#  pull-requests:
+#    develop: # only for PRs wanting to merge into develop
+#      - step: *composerInstall
+#      - step: *buildImage
+#      - step: *deployPR
