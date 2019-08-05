@@ -1,3 +1,7 @@
 FROM nginx:alpine
 
-ADD vhost.conf /etc/nginx/conf.d/default.conf
+ADD .docker/vhost.conf /etc/nginx/conf.d/default.conf
+
+WORKDIR /var/www
+COPY . /var/www
+RUN chmod -Rf 777 /var/www/storage/

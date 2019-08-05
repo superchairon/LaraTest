@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title>Laravel</title>
@@ -18,11 +19,18 @@
                 font-weight: 200;
                 height: 100vh;
                 margin: 0;
+                padding: 10px;
             }
 
-            .full-height {
-                height: 100vh;
+            .simple-box {
+                border: solid 1px gray;
+                margin: 10px;
+                padding: 10px;
+                background-color: #F0F0F0;
             }
+            /*.full-height {*/
+                /*height: 100vh;*/
+            /*}*/
 
             .flex-center {
                 align-items: center;
@@ -34,28 +42,12 @@
                 position: relative;
             }
 
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
-
             .content {
                 text-align: center;
             }
 
             .title {
                 font-size: 36px;
-            }
-
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 13px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
             }
 
             .m-b-md {
@@ -65,34 +57,25 @@
     </head>
     <body>
         <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ route('login') }}">Login</a>
-
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}">Register</a>
-                        @endif
-                    @endauth
-                </div>
-            @endif
-
-
             <div class="content">
-                <div class="title m-b-md">
-                    {{ env('ACCOUNT_NAME') ? env('ACCOUNT_NAME') : 'Laravel' }}
+                <div id="app" class="simple-box">
+                    <example-component></example-component>
                 </div>
-                <p>
-                    <strong>This is a message for DEVELOPMENT systems</strong>
-                </p>
-                <hr>
-                @foreach($counters as $counter)
-                    <p><strong>{{$counter['description']}}</strong>: {{$counter['value']}} times</p>
-                @endforeach
-                <a href="/job">Increment Job counters in 10 seconds</a>
+                <div class="simple-box">
+                    <div class="title m-b-md">
+                        {{ env('ACCOUNT_NAME') ? env('ACCOUNT_NAME') : 'Laravel' }}
+                    </div>
+                    <p>
+                        <strong>This is a message for DEVELOPMENT systems</strong>
+                    </p>
+                    <hr>
+                    @foreach($counters as $counter)
+                        <p><strong>{{$counter['description']}}</strong>: {{$counter['value']}} times</p>
+                    @endforeach
+                    <a href="/job">Increment Job counters in 10 seconds</a>
+                </div>
             </div>
         </div>
     </body>
+    <script src="{{ asset('js/app.js') }}" type="text/javascript"></script>
 </html>

@@ -5,7 +5,7 @@ image:
 
 definitions:
   composerInstall: &composerInstall
-    name: Install Composer
+    name: Install Composer Dependencies
     image: composer
     caches:
       - composer
@@ -13,6 +13,18 @@ definitions:
       - composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs
     artifacts:
       - vendor/**
+
+  nodeBuild: &nodeBuild
+    name: Install Node dependencies and Build JS scripts
+    image: node:8-jessie
+    caches:
+      - node
+    script:
+      - npm install
+      - npm run prod
+    artifacts:
+      - public/js/**
+      - public/css/**
 
   buildImage: &buildImage
     name: Build and Push Docker Image
@@ -33,6 +45,10 @@ definitions:
       - docker push superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER
 #      - docker push superchairon/laratest_php-cli:latest
       - if [[ $BITBUCKET_BRANCH == master ]]; then docker push superchairon/laratest_php-cli:latest; fi
+      # build nginx image
+      - docker build -t superchairon/laratest_nginx:latest -t superchairon/laratest_nginx:$BITBUCKET_BUILD_NUMBER -f ./.docker/nginx.dockerfile .
+      - docker push superchairon/laratest_nginx:$BITBUCKET_BUILD_NUMBER
+      - if [[ $BITBUCKET_BRANCH == master ]]; then docker push superchairon/laratest_nginx:latest; fi
 
   deploy: &deploy
     name: Deploy to Google Kubernetes Engine
@@ -53,6 +69,7 @@ definitions:
         do
           echo deploying to $namespace;
           kubectl set image deployment/laratest-web laratest-php=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+          kubectl set image deployment/laratest-web laratest-nginx=superchairon/laratest_nginx:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
           kubectl set image deployment/laratest-queue laratest-queue=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
           kubectl set image cronjob/laratest-scheduler laratest-scheduler=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
         done
@@ -84,10 +101,12 @@ pipelines:
   branches:
     develop:
       - step: *composerInstall
+      - step: *nodeBuild
       - step: *buildImage
       - step: *deploy
     master:
       - step: *composerInstall
+      - step: *nodeBuild
       - step: *buildImage
       - step: *deploy
 #  pull-requests:

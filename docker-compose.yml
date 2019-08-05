@@ -15,19 +15,19 @@ services:
       - 9000
     env_file:
       - .env
-    volumes:
-      - ./:/var/www
+#    volumes:
+#      - ./:/var/www
 
   # The Web Server
   nginx:
     build:
-      context: .docker
-      dockerfile: nginx.dockerfile
+      context: .
+      dockerfile: .docker/nginx.dockerfile
     working_dir: /var/www
     depends_on:
       - php-fpm
-    volumes:
-      - ./:/var/www
+#    volumes:
+#      - ./:/var/www
     expose:
       - 80
       - 443
@@ -44,8 +44,9 @@ services:
       - postgres
     env_file:
       - .env
-    volumes:
-      - ./:/var/www
+    command: php artisan queue:work --tries=3
+  #    volumes:
+#      - ./:/var/www
 
   # Mongo DB
   mongodb:
