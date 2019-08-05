@@ -10,9 +10,15 @@ class HomeController extends Controller
 {
     public function index()
     {
+        CounterManager::incMongoCounter('mongo_root_hits');
+        return 'Go to the counters page';
+    }
+    public function home()
+    {
         $counters = [
-            ['description' => 'Mongo page clicks counter', 'value' => CounterManager::incMongoCounter('mongo_views')],
-            ['description' => 'Postgres page clicks counter', 'value' => CounterManager::incPostgresCounter('postgres_views')],
+            ['description' => 'Mongo / hits', 'value' => CounterManager::getMongoCounter('mongo_root_hits')],
+            ['description' => 'Mongo home page clicks counter', 'value' => CounterManager::incMongoCounter('mongo_views')],
+            ['description' => 'Postgres home page clicks counter', 'value' => CounterManager::incPostgresCounter('postgres_views')],
             ['description' => 'Mongo jobs counter', 'value' => CounterManager::getMongoCounter('mongo_jobs')],
             ['description' => 'Postgres jobs counter', 'value' => CounterManager::getPostgresCounter('postgres_jobs')],
             ['description' => 'Mongo scheduler counter', 'value' => CounterManager::getMongoCounter('mongo_scheduler')],
