@@ -66,7 +66,7 @@
                         {{ env('ACCOUNT_NAME') ? env('ACCOUNT_NAME') : 'Laravel' }}
                     </div>
                     <p>
-                        <strong>This is a message for DEVELOPMENT systems</strong>
+                        Hola Ruben!</strong>
                     </p>
                     <hr>
                     @foreach($counters as $counter)
