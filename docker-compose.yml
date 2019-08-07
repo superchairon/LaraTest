@@ -15,8 +15,8 @@ services:
       - 9000
     env_file:
       - .env
-#    volumes:
-#      - ./:/var/www
+    volumes:
+      - ./:/var/www
 
   # The Web Server
   nginx:
@@ -26,8 +26,8 @@ services:
     working_dir: /var/www
     depends_on:
       - php-fpm
-#    volumes:
-#      - ./:/var/www
+    volumes:
+      - ./:/var/www
     expose:
       - 80
       - 443
@@ -45,8 +45,8 @@ services:
     env_file:
       - .env
     command: php artisan queue:work --tries=3
-  #    volumes:
-#      - ./:/var/www
+    volumes:
+      - ./:/var/www
 
   # Mongo DB
   mongodb:

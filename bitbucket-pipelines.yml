@@ -4,13 +4,30 @@ image:
   name: atlassian/pipelines-awscli
 
 definitions:
+  services:
+    mongo:
+      image: mongo
+    postgres:
+      image: postgres
+      variables:
+        POSTGRES_DB: 'pipelines'
+        POSTGRES_USER: 'test_user'
+        POSTGRES_PASSWORD: 'test_user_password'
+
   composerInstall: &composerInstall
-    name: Install Composer Dependencies
+    name: Install Composer Dependencies and run PHP tests
     image: composer
     caches:
       - composer
+    services:
+      - mongo
+      - postgres
     script:
-      - composer install --no-ansi --no-dev --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs
+      - composer install --no-ansi --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs --no-dev
+#      - cp .env.example .env
+#      - php artisan key:generate
+#      - php artisan migrate:refresh --seed
+#      - ./vendor/bin/phpunit
     artifacts:
       - vendor/**
 
@@ -109,8 +126,9 @@ pipelines:
       - step: *nodeBuild
       - step: *buildImage
       - step: *deploy
-#  pull-requests:
-#    develop: # only for PRs wanting to merge into develop
-#      - step: *composerInstall
+  pull-requests:
+    develop: # only for PRs wanting to merge into develop
+      - step: *composerInstall
+      - step: *nodeBuild
 #      - step: *buildImage
 #      - step: *deployPR
