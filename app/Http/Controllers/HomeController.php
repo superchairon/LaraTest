@@ -11,7 +11,7 @@ class HomeController extends Controller
     public function index()
     {
         CounterManager::incMongoCounter('mongo_root_hits');
-        return 'Go to the counters page';
+        return 'Go to the <a href="/home">counters</a> page';
     }
     public function home()
     {
@@ -31,7 +31,7 @@ class HomeController extends Controller
     public function job()
     {
         UpdateCounterJob::dispatch()->delay(now()->addSeconds(10));
-        return redirect('/');
+        return redirect('/home');
     }
 
 }
