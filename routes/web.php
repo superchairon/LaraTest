@@ -16,3 +16,6 @@ Route::get('/counters', 'HomeController@counters');
 Route::get('/job', 'HomeController@job');
 Route::get('/log', 'HomeController@log');
 Route::get('/bug', 'HomeController@bug');
+Route::get('/upload', 'HomeController@uploadCreate');
+Route::post('/upload', 'HomeController@uploadStore');
+Route::get('/download/{path}', 'HomeController@download')->where('path', '(.*)');;

@@ -7,6 +7,7 @@ use App\Jobs\UpdateCounterJob;
 use Google\Cloud\Logging\LoggingClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
@@ -83,5 +84,36 @@ class HomeController extends Controller
         $x = $x[0];
         return $x;
     }
+
+    public function uploadCreate()
+    {
+//        $files = Storage::files('documents');
+        $directories = Storage::directories('');
+        $files = Storage::allFiles('/');
+        return view('upload')
+            ->with('files', $files)
+            ->with('directories', $directories);
+    }
+
+    public function uploadStore(Request $request)
+    {
+        $file = $request->file('filename');
+        if ($file && $file->isValid()) {
+            $path = $file->storeAs(null, $file->getClientOriginalName());
+        }
+        return 'File uploaded: ' . $file->getClientOriginalName();
+    }
+
+    public function download($filename)
+    {
+        if (Storage::exists($filename)) {
+//            return Storage::download($filename);
+            return Storage::response($filename);
+        } else {
+            abort(404);
+        }
+        return null;
+    }
+
 
 }
