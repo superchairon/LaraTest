@@ -12,5 +12,7 @@
 */
 
 Route::get('/', 'HomeController@index');
-Route::get('/home', 'HomeController@home');
+Route::get('/counters', 'HomeController@counters');
 Route::get('/job', 'HomeController@job');
+Route::get('/log', 'HomeController@log');
+Route::get('/bug', 'HomeController@bug');

@@ -36,7 +36,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['daily'],
+            'channels' => ['single'],
             'ignore_exceptions' => false,
         ],
 
@@ -89,6 +89,22 @@ return [
             'driver' => 'errorlog',
             'level' => 'debug',
         ],
+
+        'stackdriver' => [
+//            'driver' => 'monolog',
+//            'handler' => \App\Helpers\StackdriverHandler::class,
+            'driver' => 'custom',
+            'via' => \App\Helpers\StackdriverDriver::class,
+            'logName' => \Illuminate\Support\Str::slug(env('APP_NAME')) . '-' . env('ACCOUNT_SLUG'),
+            'labels' => [
+                'application' => env('APP_NAME'),
+                'environment' => env('APP_ENV'),
+                'account' => env('ACCOUNT_SLUG'),
+                'instance' => env('ACCOUNT_SLUG'),
+            ],
+            'level' => 'debug',
+        ],
+
     ],
 
 ];

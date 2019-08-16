@@ -70,9 +70,10 @@
                         This is a testing environment on Kubernetes!</strong>
                     </p>
                     <hr>
-                    <a href="/counters">DB counters</a><br>
-                    <a href="/log">Create a random Log entry</a><br>
-                    <a href="/bug">Simulate an error</a><br>
+                    @foreach($counters as $counter)
+                        <p><strong>{{$counter['description']}}</strong>: {{$counter['value']}} times</p>
+                    @endforeach
+                    <a href="/job">Increment Job counters in 10 seconds</a>
                 </div>
             </div>
         </div>

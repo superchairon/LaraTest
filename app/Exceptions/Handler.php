@@ -3,6 +3,9 @@
 namespace App\Exceptions;
 
 use Exception;
+use Google\Cloud\Core\Report\SimpleMetadataProvider;
+use Google\Cloud\ErrorReporting\Bootstrap;
+use Google\Cloud\Logging\LoggingClient;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
@@ -34,7 +37,26 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
-        parent::report($exception);
+        if ($this->shouldReport($exception)) {
+            // Ensure Stackdriver is initialized and handle the exception
+            $monitoredResource = [
+                'type' => 'global',
+            ];
+            $labels = config('logging.channels.stackdriver.labels');
+            $logName = config('logging.channels.stackdriver.logName');
+            $logger = (new LoggingClient())
+                ->psrLogger('app-error', [
+                    'batchEnabled' => true,
+                    'debugOutput' => true,
+                    'batchOptions' => [
+                        'numWorkers' => 2
+                    ],
+                    'metadataProvider' => new SimpleMetadataProvider($monitoredResource, '', $logName, '', $labels)
+                ]);
+            Bootstrap::init($logger);
+            Bootstrap::exceptionHandler($exception);
+            parent::report($exception);
+        }
     }
 
     /**

@@ -1,3 +1,4 @@
 .env
 .kubernetes/*
 storage/logs/*
+node_modules
