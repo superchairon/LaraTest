@@ -39,7 +39,7 @@ class HomeController extends Controller
     public function job()
     {
         UpdateCounterJob::dispatch()->delay(now()->addSeconds(10));
-        return redirect('/home');
+        return redirect('/counters');
     }
 
     public function log()
