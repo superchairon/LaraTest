@@ -3,6 +3,7 @@ version: '3'
 services:
   # The Application
   php-fpm:
+    image: superchairon/laratest_php-fpm:latest
     build:
       context: . #/.docker
       dockerfile: .docker/php-fpm.dockerfile
@@ -20,6 +21,7 @@ services:
 
   # The Web Server
   nginx:
+    image: superchairon/laratest_nginx:latest
     build:
       context: .
       dockerfile: .docker/nginx.dockerfile
@@ -34,6 +36,7 @@ services:
 
   # The Application CLI
   php-cli:
+    image: superchairon/laratest_php-cli:latest
     build:
       context: .
       dockerfile: .docker/php-cli.dockerfile

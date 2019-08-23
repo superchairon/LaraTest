@@ -1,7 +1,17 @@
 
-#image: php:7.1.29
 image:
   name: atlassian/pipelines-awscli
+
+
+#    Deployment table
+#    ------------------------------------------------------
+#    git branch                  | master        | develop
+#    Kubernetes deployment type  | production    | staging
+#    Docker image suffix         | <none>        | -dev
+#    BitBucket deployment        | <not used>    | <not used>
+#
+#    For example, when a commit is made to 'develop', an automatic deployment will be made to all those instances running
+#    in kubernetes instances where the deployment-type is 'staging', and the docker images will have a suffix '-dev'
 
 definitions:
   services:
@@ -52,20 +62,25 @@ definitions:
     script:
       - ls -lt # list dir so that it's output in the logs, just to make sure the ./vendor dir is included from previous step
       - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+      - if [ $BITBUCKET_BRANCH == develop ]; then SUFFIX=-dev; fi
       # build php-fpm image
-      - docker build -t superchairon/laratest_php-fpm:latest -t superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER -f ./.docker/php-fpm.dockerfile .
-      - docker push superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER
-#      - docker push superchairon/laratest_php-fpm:latest
-      - if [[ $BITBUCKET_BRANCH == master ]]; then docker push superchairon/laratest_php-fpm:latest; fi
+      - TAG_BUILD=superchairon/laratest_php-fpm${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
+      - TAG_LATEST=superchairon/laratest_php-fpm${SUFFIX}:latest
+      - docker build -t $TAG_BUILD -t $TAG_LATEST -f ./.docker/php-fpm.dockerfile .
+      - docker push $TAG_BUILD
+      - docker push $TAG_LATEST
       # build php-cli image
-      - docker build -t superchairon/laratest_php-cli:latest -t superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER -f ./.docker/php-cli.dockerfile .
-      - docker push superchairon/laratest_php-cli:$BITBUCKET_BUILD_NUMBER
-#      - docker push superchairon/laratest_php-cli:latest
-      - if [[ $BITBUCKET_BRANCH == master ]]; then docker push superchairon/laratest_php-cli:latest; fi
+      - TAG_BUILD=superchairon/laratest_php-cli${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
+      - TAG_LATEST=superchairon/laratest_php-cli${SUFFIX}:latest
+      - docker build -t $TAG_BUILD -t $TAG_LATEST -f ./.docker/php-cli.dockerfile .
+      - docker push $TAG_BUILD
+      - docker push $TAG_LATEST
       # build nginx image
-      - docker build -t superchairon/laratest_nginx:latest -t superchairon/laratest_nginx:$BITBUCKET_BUILD_NUMBER -f ./.docker/nginx.dockerfile .
-      - docker push superchairon/laratest_nginx:$BITBUCKET_BUILD_NUMBER
-      - if [[ $BITBUCKET_BRANCH == master ]]; then docker push superchairon/laratest_nginx:latest; fi
+      - TAG_BUILD=superchairon/laratest_nginx${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
+      - TAG_LATEST=superchairon/laratest_nginx${SUFFIX}:latest
+      - docker build -t $TAG_BUILD -t $TAG_LATEST -f ./.docker/nginx.dockerfile .
+      - docker push $TAG_BUILD
+      - docker push $TAG_LATEST
 
   deploy: &deploy
     name: Deploy to Google Kubernetes Engine
@@ -79,35 +94,18 @@ definitions:
       - kubectl config set-context gke_coral-codex-248302_us-central1-a_standard-cluster-1 --cluster=standard-cluster-1 --user=bitbucket
       - kubectl config use-context gke_coral-codex-248302_us-central1-a_standard-cluster-1
       # Update image
-      - if [ $BITBUCKET_BRANCH == master ]; then type=production; elif [ $BITBUCKET_BRANCH == develop ]; then type=development; else type=nothing; fi
-      - NAMESPACES=$(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name -l deployment-type=$type)
+      - if [ $BITBUCKET_BRANCH == master ]; then TYPE=production; elif [ $BITBUCKET_BRANCH == develop ]; then TYPE=staging; else TYPE=nothing; fi
+      - if [ $BITBUCKET_BRANCH == develop ]; then SUFFIX=-dev; fi
+      - NAMESPACES=$(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name -l deployment-type=$TYPE)
       - >
         for namespace in $NAMESPACES;
         do
           echo deploying to $namespace;
-          kubectl set image deployment/laratest-web laratest-php=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
-          kubectl set image deployment/laratest-web laratest-nginx=superchairon/laratest_nginx:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
-          kubectl set image deployment/laratest-queue laratest-queue=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
-          kubectl set image cronjob/laratest-scheduler laratest-scheduler=superchairon/laratest_php-fpm:$BITBUCKET_BUILD_NUMBER --namespace=$namespace;
+          kubectl set image deployment/laratest-web          laratest-php=superchairon/laratest_php-fpm${SUFFIX}:${BITBUCKET_BUILD_NUMBER} --namespace=$namespace;
+          kubectl set image deployment/laratest-web        laratest-nginx=superchairon/laratest_nginx${SUFFIX}:${BITBUCKET_BUILD_NUMBER}   --namespace=$namespace;
+          kubectl set image deployment/laratest-queue      laratest-queue=superchairon/laratest_php-cli${SUFFIX}:${BITBUCKET_BUILD_NUMBER} --namespace=$namespace;
+          kubectl set image cronjob/laratest-scheduler laratest-scheduler=superchairon/laratest_php-cli${SUFFIX}:${BITBUCKET_BUILD_NUMBER} --namespace=$namespace;
         done
-  dummy: &dummy
-    script:
-      - echo "The branch is $BITBUCKET_BRANCH"
-      - echo "The commit hash is $BITBUCKET_COMMIT"
-      - echo "The user UUID is $BITBUCKET_STEP_TRIGGERER_UUID"
-      - >
-        if [ $BITBUCKET_STEP_TRIGGERER_UUID == "{3823d190-5ccd-4e29-9e9a-6c794e0229d6}" ];
-          then USER=jorge;
-        elif [ $BITBUCKET_STEP_TRIGGERER_UUID == "{3823d190-5ccd-4e29-9e9a-6c794e0229d6}" ];
-          then USER=ruben;
-        fi
-      - >
-        if [ ! -z $BITBUCKET_STEP_TRIGGERER_UUID ];
-          then echo "Build container with $USER tag";
-        else
-          echo "Don't build container"
-        fi
-
 
 pipelines:
   branches:
@@ -121,8 +119,9 @@ pipelines:
       - step: *nodeBuild
       - step: *buildImage
       - step: *deploy
-    preview:
-      - step: *dummy
+#    default:
+#      - step: *composerInstall
+#      - step: *nodeBuild
 #  pull-requests:
 #    develop: # only for PRs wanting to merge FROM develop
 #      - step: ...
