@@ -20,29 +20,39 @@ definitions:
     postgres:
       image: postgres
       variables:
-        POSTGRES_DB: 'pipelines'
-        POSTGRES_USER: 'test_user'
-        POSTGRES_PASSWORD: 'test_user_password'
+        POSTGRES_DB: 'laratest'
+        POSTGRES_USER: 'myuser'
+        POSTGRES_PASSWORD: 'mypassword'
 
-  composerInstall: &composerInstall
-    name: Install Composer Dependencies and run PHP tests
+  composeInstallDev: &composeInstallDev
+    name: Install Composer Dependencies
     image: composer
+    caches:
+      - composer
+    script:
+      - composer install --no-ansi --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs
+    artifacts:
+      - vendor/**
+
+  phpTests: &phpTests
+    name: Run PHP tests
+    image: superchairon/laratest_php-cli
     caches:
       - composer
     services:
       - mongo
       - postgres
     script:
-      - composer install --no-ansi --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs --no-dev
-#      - cp .env.example .env
-#      - php artisan key:generate
-#      - php artisan migrate:refresh --seed
-#      - ./vendor/bin/phpunit
-    artifacts:
-      - vendor/**
+#      - composer install --no-ansi --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs
+      - cp .env.example .env
+      - php artisan key:generate
+      - php artisan migrate:refresh --seed
+      - ./vendor/bin/phpunit
+#    artifacts:
+#      - vendor/**
 
-  nodeBuild: &nodeBuild
-    name: Install Node dependencies and Build JS scripts
+  nodeBuildAndTest: &nodeBuildAndTest
+    name: Install Node dependencies, Build JS scripts, and run JS tests
     image: node:8-jessie
     caches:
       - node
@@ -52,6 +62,16 @@ definitions:
     artifacts:
       - public/js/**
       - public/css/**
+
+#  composerInstallNoDev: &composerInstallNoDev
+#    name: Install Composer Dependencies without Dev
+#    image: composer
+#    caches:
+#      - composer
+#    script:
+#      - composer install --no-ansi --no-interaction --no-progress --no-scripts --optimize-autoloader --ignore-platform-reqs --no-dev
+#    artifacts:
+#      - vendor/**
 
   buildImage: &buildImage
     name: Build and Push Docker Image
@@ -110,18 +130,22 @@ definitions:
 pipelines:
   branches:
     develop:
-      - step: *composerInstall
-      - step: *nodeBuild
+      - step: *composeInstallDev
+      - step: *phpTests
+      - step: *nodeBuildAndTest
+#      - step: *composerInstallNoDev
       - step: *buildImage
       - step: *deploy
     master:
-      - step: *composerInstall
-      - step: *nodeBuild
+      - step: *composeInstallDev
+      - step: *phpTests
+      - step: *nodeBuildAndTest
+#      - step: *composerInstallNoDev
       - step: *buildImage
       - step: *deploy
 #    default:
-#      - step: *composerInstall
-#      - step: *nodeBuild
+#      - step: *phpTests
+#      - step: *nodeBuildAndTest
 #  pull-requests:
 #    develop: # only for PRs wanting to merge FROM develop
 #      - step: ...

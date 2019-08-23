@@ -16,11 +16,7 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
         $response->assertStatus(200);
-    }
-
-    public function testHomePage()
-    {
-        $response = $this->get('/home');
         $response->assertSee('Welcome!');
     }
+
 }
