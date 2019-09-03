@@ -53,8 +53,10 @@ class Handler extends ExceptionHandler
                     ],
                     'metadataProvider' => new SimpleMetadataProvider($monitoredResource, '', $logName, '', $labels)
                 ]);
-            Bootstrap::init($logger);
-            Bootstrap::exceptionHandler($exception);
+            if ($logger) {
+                Bootstrap::init($logger);
+                Bootstrap::exceptionHandler($exception);
+            }
             parent::report($exception);
         }
     }
