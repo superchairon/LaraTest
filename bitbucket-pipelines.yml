@@ -81,23 +81,28 @@ definitions:
       - docker
     script:
       - ls -lt # list dir so that it's output in the logs, just to make sure the ./vendor dir is included from previous step
-      - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+#      - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+      - echo $GCR_JSON
+      - echo $GCR_JSON > ./keyfile.json
+      - docker login -u _json_key -p "$(cat ./keyfile.json)" https://gcr.io
       - if [ $BITBUCKET_BRANCH == develop ]; then SUFFIX=-dev; fi
+#      - REGISTRY=superchairon
+      - REGISTRY=gcr.io/coral-codex-248302/
       # build php-fpm image
-      - TAG_BUILD=superchairon/laratest_php-fpm${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
-      - TAG_LATEST=superchairon/laratest_php-fpm${SUFFIX}:latest
+      - TAG_BUILD=$REGISTRY/laratest_php-fpm${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
+      - TAG_LATEST=$REGISTRY/laratest_php-fpm${SUFFIX}:latest
       - docker build -t $TAG_BUILD -t $TAG_LATEST -f ./.docker/php-fpm.dockerfile .
       - docker push $TAG_BUILD
       - docker push $TAG_LATEST
       # build php-cli image
-      - TAG_BUILD=superchairon/laratest_php-cli${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
-      - TAG_LATEST=superchairon/laratest_php-cli${SUFFIX}:latest
+      - TAG_BUILD=$REGISTRY/laratest_php-cli${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
+      - TAG_LATEST=$REGISTRY/laratest_php-cli${SUFFIX}:latest
       - docker build -t $TAG_BUILD -t $TAG_LATEST -f ./.docker/php-cli.dockerfile .
       - docker push $TAG_BUILD
       - docker push $TAG_LATEST
       # build nginx image
-      - TAG_BUILD=superchairon/laratest_nginx${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
-      - TAG_LATEST=superchairon/laratest_nginx${SUFFIX}:latest
+      - TAG_BUILD=$REGISTRY/laratest_nginx${SUFFIX}:${BITBUCKET_BUILD_NUMBER}
+      - TAG_LATEST=$REGISTRY/laratest_nginx${SUFFIX}:latest
       - docker build -t $TAG_BUILD -t $TAG_LATEST -f ./.docker/nginx.dockerfile .
       - docker push $TAG_BUILD
       - docker push $TAG_LATEST
